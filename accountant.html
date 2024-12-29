@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accountant View</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .header {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-small {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-small:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters select, .filters input {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .charts-container {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .chart-container canvas {
+            width: 100%;
+            height: 400px;
+        }
+
+        .table-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        table, th, td {
+            border: 1px solid #e5e7eb;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Accountant Dashboard</h1>
+        </div>
+
+        <div class="filters">
+            <select id="filterType">
+                <option value="day">Day</option>
+                <option value="month">Month</option>
+                <option value="service">Service</option>
+            </select>
+            <input type="date" id="filterDate">
+            <button class="btn-small" onclick="applyFilter()">Apply Filter</button>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-container">
+                <canvas id="servicesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="debtorsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>Receivables</h2>
+            <button class="btn-small" onclick="exportReceivablesToExcel()">Export to Excel</button>
+            <table id="receivablesTable">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Service</th>
+                        <th>quantity</th>
+                        <th>Amount</th>
+                        <th>Total</th>
+                       <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>Bank</h2>
+            <button class="btn-small" onclick="exportBankToExcel()">Export to Excel</button>
+            <table id="bankTable">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Service</th>
+                        <th>quantity</th>
+                        <th>Amount</th>
+                        <th>Total</th>
+                       <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>Revenue</h2>
+            <button class="btn-small" onclick="exportRevenueToExcel()">Export to Excel</button>
+            <table id="revenueTable">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Service</th>
+                        <th>Quantity</th>
+                        <th>Amount</th>
+                        <th>Total</th>
+                       <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script>
+        const servicesChartCtx = document.getElementById('servicesChart').getContext('2d');
+        const debtorsChartCtx = document.getElementById('debtorsChart').getContext('2d');
+
+        let servicesChart;
+        let debtorsChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchDataAndRenderCharts();
+            fetchAndRenderTables();
+        });
+
+        function fetchDataAndRenderCharts() {
+            fetch('https://stable-yxe7.onrender.com/api/v1/revenue')
+                .then(response => response.json())
+                .then(data => {
+                    const servicesData = data.data.map(item => item.service);
+                    const servicesCount = data.data.map(item => item.quantity);
+
+                    servicesChart = new Chart(servicesChartCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: servicesData,
+                            datasets: [{
+                                label: 'Most Frequently Used Services',
+                                data: servicesCount,
+                                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                                borderColor: 'rgba(37, 99, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching services data:', error));
+
+            fetch('https://stable-yxe7.onrender.com/api/v1/recievable')
+                .then(response => response.json())
+                .then(data => {
+                    const debtorsData = data.data.map(item => item.customer_name);
+                    const debtorsAmount = data.data.map(item => item.total);
+
+                    debtorsChart = new Chart(debtorsChartCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: debtorsData,
+                            datasets: [{
+                                label: 'Debtors',
+                                data: debtorsAmount,
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching receivables data:', error));
+        }
+
+        function fetchAndRenderTables() {
+            fetch('https://stable-yxe7.onrender.com/api/v1/recievable')
+                .then(response => response.json())
+                .then(data => {
+                    const receivablesTableBody = document.getElementById('receivablesTable').querySelector('tbody');
+                    receivablesTableBody.innerHTML = data.data.map(item => `
+                        <tr>
+                           <td>${item.customer_name}</td>
+                            <td>${item.service}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.amount}</td>
+                            <td>${item.total}</td>
+                            <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error fetching receivables data:', error));
+
+            fetch('https://stable-yxe7.onrender.com/api/v1/bank')
+                .then(response => response.json())
+                .then(data => {
+                    const bankTableBody = document.getElementById('bankTable').querySelector('tbody');
+                    bankTableBody.innerHTML = data.data.map(item => `
+                        <tr>
+                            <td>${item.customer_name}</td>
+                            <td>${item.service}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.amount}</td>
+                            <td>${item.total}</td>
+                            <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error fetching bank data:', error));
+
+            fetch('https://stable-yxe7.onrender.com/api/v1/revenue')
+                .then(response => response.json())
+                .then(data => {
+                    const revenueTableBody = document.getElementById('revenueTable').querySelector('tbody');
+                    revenueTableBody.innerHTML = data.data.map(item => `
+                        <tr>
+                             <td>${item.customer_name}</td>
+                            <td>${item.service}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.amount}</td>
+                            <td>${item.total}</td>
+                            <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error fetching revenue data:', error));
+        }
+
+        function applyFilter() {
+            const filterType = document.getElementById('filterType').value;
+            const filterDate = document.getElementById('filterDate').value;
+
+            // Fetch and filter data based on the selected filter type and date
+            // Update the charts and tables accordingly
+        }
+
+        function exportReceivablesToExcel() {
+            fetch('https://stable-yxe7.onrender.com/api/v1/receive')
+                .then(response => response.json())
+                .then(data => {
+                    const ws = XLSX.utils.json_to_sheet(data.data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Receivables');
+                    XLSX.writeFile(wb, 'receivables_data.xlsx');
+                })
+                .catch(error => console.error('Error exporting receivables data:', error));
+        }
+
+        function exportBankToExcel() {
+            fetch('https://stable-yxe7.onrender.com/api/v1/bank')
+                .then(response => response.json())
+                .then(data => {
+                    const ws = XLSX.utils.json_to_sheet(data.data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Bank');
+                    XLSX.writeFile(wb, 'bank_data.xlsx');
+                })
+                .catch(error => console.error('Error exporting bank data:', error));
+        }
+
+        function exportRevenueToExcel() {
+            fetch('https://stable-yxe7.onrender.com/api/v1/revenue')
+                .then(response => response.json())
+                .then(data => {
+                    const ws = XLSX.utils.json_to_sheet(data.data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Revenue');
+                    XLSX.writeFile(wb, 'revenue_data.xlsx');
+                })
+                .catch(error => console.error('Error exporting revenue data:', error));
+        }
+    </script>
+</body>
+</html>

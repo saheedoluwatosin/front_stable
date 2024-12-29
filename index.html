@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Creation System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .form-section, .preview-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-small:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .preview-section {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .preview-header {
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .preview-content {
+            background-color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .preview-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .preview-row:last-child {
+            border-bottom: none;
+        }
+
+        .preview-label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .preview-value {
+            color: #1f2937;
+        }
+
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-confirm {
+            background-color: #059669;
+        }
+
+        .btn-cancel {
+            background-color: #dc2626;
+        }
+
+        .error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-file-invoice"></i> Invoice Creation System</h1>
+            <div class="header-buttons">
+                <button class="btn-small" onclick="window.location.href='accountant.html'">Accountant View</button>
+                <button class="btn-small">Purchase</button>
+                <button class="btn-small">Expenses</button>
+                <button class="btn-small">Reports</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <form id="invoiceForm">
+                <div class="form-group">
+                    <label for="customerName">Customer Name</label>
+                    <input type="text" id="customerName" class="form-control" required>
+                    <div class="error" id="customerNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" class="form-control" required>
+                    <div class="error" id="quantityError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="unitPrice">Unit Price</label>
+                    <input type="number" id="unitPrice" class="form-control" required>
+                    <div class="error" id="unitPriceError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentType">Payment Type</label>
+                    <select id="paymentType" class="form-control">
+                        <option value="cash">Cash</option>
+                        <option value="credit">Credit</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Services</label>
+                    <div class="services-grid" id="servicesContainer"></div>
+                    <div class="error" id="servicesError"></div>
+                </div>
+
+                <button type="submit" class="btn">Review Invoice</button>
+            </form>
+        </div>
+
+        <div class="preview-section">
+            <div class="preview-header">
+                <h2>Invoice Preview</h2>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <div class="preview-row">
+                    <span class="preview-label">Customer:</span>
+                    <span class="preview-value" id="previewCustomer">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Quantity:</span>
+                    <span class="preview-value" id="previewQuantity">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Unit Price:</span>
+                    <span class="preview-value" id="previewUnitPrice">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Total Amount:</span>
+                    <span class="preview-value" id="previewAmount">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Payment Type:</span>
+                    <span class="preview-value" id="previewPayment">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Services:</span>
+                    <span class="preview-value" id="previewServices">-</span>
+                </div>
+                <div class="preview-row">
+                    <span class="preview-label">Date:</span>
+                    <span class="preview-value" id="previewDate">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h2>Confirm Invoice Submission</h2>
+            <p>Please review the invoice details before final submission.</p>
+            <div id="modalPreview" class="preview-content"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-confirm" id="confirmSubmit">Confirm & Submit</button>
+                <button class="btn btn-cancel" id="cancelSubmit">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const servicesList = ['Cutting', 'Door', 'Painting', 'Welding', 'Assembly'];
+        const servicesContainer = document.getElementById('servicesContainer');
+        const invoiceForm = document.getElementById('invoiceForm');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const modalPreview = document.getElementById('modalPreview');
+
+        // Create service checkboxes
+        servicesList.forEach(service => {
+            const div = document.createElement('div');
+            div.className = 'service-item';
+            div.innerHTML = `
+                <input type="checkbox" id="${service.toLowerCase()}" name="services" value="${service}">
+                <label for="${service.toLowerCase()}">${service}</label>
+            `;
+            servicesContainer.appendChild(div);
+        });
+
+        // Live preview updates
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        function updatePreview() {
+            const invoiceData = getFormData();
+            document.getElementById('previewCustomer').textContent = invoiceData.customer_name || '-';
+            document.getElementById('previewQuantity').textContent = invoiceData.quantity || '-';
+            document.getElementById('previewUnitPrice').textContent = invoiceData.unitPrice ? `$${invoiceData.unitPrice}` : '-';
+            document.getElementById('previewAmount').textContent = invoiceData.amount ? `$${invoiceData.amount}` : '-';
+            document.getElementById('previewPayment').textContent = invoiceData.paymentType || '-';
+            document.getElementById('previewServices').textContent = invoiceData.service.join(', ') || '-';
+            document.getElementById('previewDate').textContent = new Date().toLocaleDateString();
+        }
+
+        function getFormData() {
+            const quantity = document.getElementById('quantity').value;
+            const unitPrice = document.getElementById('unitPrice').value;
+            const customer_name= document.getElementById('customerName').value
+            const service = Array.from(document.querySelectorAll('input[name="services"]:checked'))
+                .map(checkbox => checkbox.value);
+            return {
+                customer_name : customer_name,
+                quantity: quantity,
+                unitPrice: unitPrice,
+                amount: quantity * unitPrice,
+                paymentType: document.getElementById('paymentType').value,
+                service: service
+            };
+        }
+
+        // Form submission and validation
+        invoiceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const invoiceData = getFormData();
+            let isValid = validateForm(invoiceData);
+
+            if (isValid) {
+                showConfirmationModal(invoiceData);
+            }
+        });
+
+        function validateForm(data) {
+            let isValid = true;
+            clearErrors();
+
+            if (!data.customer_name) {
+                document.getElementById('customerNameError').textContent = 'Customer name is required';
+                isValid = false;
+            }
+
+            if (!data.quantity || isNaN(data.quantity)) {
+                document.getElementById('quantityError').textContent = 'Valid quantity is required';
+                isValid = false;
+            }
+
+            if (!data.unitPrice || isNaN(data.unitPrice)) {
+                document.getElementById('unitPriceError').textContent = 'Valid unit price is required';
+                isValid = false;
+            }
+
+            if (data.service.length === 0) {
+                document.getElementById('servicesError').textContent = 'Select at least one service';
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+        }
+
+        function showConfirmationModal(data) {
+            modalPreview.innerHTML = `
+                <div class="preview-row"><span class="preview-label">Customer:</span><span>${data.customer_name}</span></div>
+                <div class="preview-row"><span class="preview-label">Quantity:</span><span>${data.quantity}</span></div>
+                <div class="preview-row"><span class="preview-label">Unit Price:</span><span>$${data.unitPrice}</span></div>
+                <div class="preview-row"><span class="preview-label">Total Amount:</span><span>$${data.amount}</span></div>
+                <div class="preview-row"><span class="preview-label">Payment Type:</span><span>${data.paymentType}</span></div>
+                <div class="preview-row"><span class="preview-label">Services:</span><span>${data.service.join(', ')}</span></div>
+                <div class="preview-row"><span class="preview-label">Date:</span><span>${new Date().toLocaleDateString()}</span></div>
+            `;
+            confirmationModal.style.display = 'flex';
+        }
+
+        // Modal buttons
+        document.getElementById('confirmSubmit').addEventListener('click', function() {
+            const invoiceData = getFormData();
+            fetch('https://stable-yxe7.onrender.com/api/v1/invoice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(invoiceData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Invoice submitted successfully!');
+                confirmationModal.style.display = 'none';
+                invoiceForm.reset();
+                updatePreview();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Failed to submit invoice.');
+            });
+        });
+
+        document.getElementById('cancelSubmit').addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
